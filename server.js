@@ -1,17 +1,23 @@
-const express = require('express');
-const app = express();
-app.use(express.json());
+const axios = require('axios');
+const phone = '+919998888952';
 
-// Gupshup may test with a GET request to check if the URL is live
-app.get('/incoming', (req, res) => {
-  res.status(200).send('GET OK - Webhook endpoint is live');
+const payload = new URLSearchParams({
+  channel: 'whatsapp',
+  source: '917834811114',               // your WhatsApp bot number (without +)
+  destination: phone,
+  message: 'Hello from Gupshup bot 👋',
+  'src.name': 'pankajchatbot'             // your Gupshup bot name
 });
 
-// This is the actual webhook that Gupshup will call on missed calls or message events
-app.post('/incoming', (req, res) => {
-  console.log('✅ Webhook received:', req.body);
-  res.status(200).send('Webhook OK');
+axios.post('https://api.gupshup.io/sm/api/v1/msg', payload, {
+  headers: {
+    apikey: 'kju3oytrfb5ltzanztowhkjblashrhcb',
+    'Content-Type': 'application/x-www-form-urlencoded'
+  }
+})
+.then(res => {
+  console.log('✅ WhatsApp message sent', res.data);
+})
+.catch(err => {
+  console.error('❌ Error sending message', err.response?.data || err.message);
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
