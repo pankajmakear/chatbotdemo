@@ -16,9 +16,8 @@ app.get('/', (_req, res) =>
   res.sendFile(path.join(__dirname, 'index.html'))
 );
 app.get('/incoming', (req, res) => {
-  res.send("This is a POST-only webhook endpoint. Please POST JSON data here.");
+  res.send('This is a webhook endpoint for POST requests only.');
 });
-
 // ── Gupshup Webhook / Missed Call Simulation ─────────────
 app.post('/incoming', async (req, res) => {
   // Allow either { phone: "+91..."} or Gupshup-style { sender: "91..." }
