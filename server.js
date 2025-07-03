@@ -1,35 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Missed Call → WhatsApp Demo</title>
-</head>
-<body>
-  <h2>Simulate Missed Call</h2>
-  <form id="missedCallForm">
-    <input type="tel" id="phone" placeholder="Enter phone number (with country code)" required />
-    <button type="submit">Give Missed Call</button>
-  </form>
-  <p id="status"></p>
+const express = require('express');
+const axios   = require('axios');
+const path    = require('path');
+require('dotenv').config();
 
-  <script>
-    const form = document.getElementById('missedCallForm');
-    const status = document.getElementById('status');
+const app  = express();
+const PORT = process.env.PORT || 3000;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const phone = document.getElementById('phone').value;
+// ── Middleware ───────────────────────────────────────────
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));          // serves public/index.html
 
-      const res = await fetch('/incoming', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
-      });
+// ── Root page ────────────────────────────────────────────
+app.get('/', (_req, res) =>
+  res.sendFile(path.join(__dirname, 'index.html'))
+);
 
-      const result = await res.json();
-      status.textContent = result.message || 'Error sending message';
-    });
-  </script>
-</body>
-</html>
+// ── “Missed‑call” endpoint ───────────────────────────────
+app.post('/incoming', async (req, res) => {
+  const phone = req.body.phone && req.body.phone.trim();
+
+  if (!phone) return res.status(400).json({ error: 'phone required' });
+
+  console.log(`📞  Simulated missed call from ${phone}`);
+
+  const payload = new URLSearchParams({
+    channel     : 'whatsapp',
+    source      : process.env.GUPSHUP_SOURCE,   // e.g. 917834811114
+    destination : phone,                        // must be in +<country><number> format
+    message     : 'Hi! Thanks for giving us a missed call. How can we help you today?',
+    'src.name'  : process.env.GUPSHUP_BOT_NAME  // your bot’s display name
+  });
+
+  try {
+    await axios.post(
+      'https://api.gupshup.io/sm/api/v1/msg',
+      payload,
+      { headers: {
+          'apikey'      : process.env.GUPSHUP_API_KEY,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }}
+    );
+    console.log(`✅ WhatsApp message sent to ${phone}`);
+    res.json({ success: true, message: 'WhatsApp message sent!' });
+  } catch (err) {
+   console.error('❌ Gupshup error:', (err.response && err.response.data) || err.message);
+
+    res.status(500).json({ success: false, message: 'Failed to send WhatsApp' });
+  }
+});
+
+// ── Start server ─────────────────────────────────────────
+app.listen(PORT, () => console.log(`🚀  Server running on port ${PORT}`));
