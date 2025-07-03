@@ -25,7 +25,7 @@ app.post('/incoming', async (req, res) => {
   try {
     const payload = new URLSearchParams({
       channel: 'whatsapp',
-      source: '+917834811114',
+      source: '917834811114',
       destination: phone,
       message,
       'src.name': 'pankajchatbot'
@@ -39,6 +39,7 @@ app.post('/incoming', async (req, res) => {
     });
 
     console.log(`✅ WhatsApp message sent to ${phone}`);
+    console.log('🔁 Gupshup response:', response.data);
     res.json({ success: true, message: 'WhatsApp message sent!' });
   } catch (error) {
     console.error('❌ Failed to send message:', error.message);
