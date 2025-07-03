@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Missed Call → WhatsApp Demo</title>
-  <style>
-    body { font-family:sans-serif; max-width:400px; margin:3rem auto; text-align:center; }
-    input, button { font-size:1rem; padding:.6rem 1rem; }
-    #status { margin-top:1rem; font-weight:bold; }
-  </style>
 </head>
 <body>
   <h2>Simulate Missed Call</h2>
   <form id="missedCallForm">
-    <input type="tel" id="phone" placeholder="+911234567890" required />
+    <input type="tel" id="phone" placeholder="Enter phone number (with country code)" required />
     <button type="submit">Give Missed Call</button>
   </form>
   <p id="status"></p>
 
-  <!-- Axios from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
-    const form   = document.getElementById('missedCallForm');
+    const form = document.getElementById('missedCallForm');
     const status = document.getElementById('status');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const phone = document.getElementById('phone').value.trim();
-      status.textContent = 'Sending…';
+      const phone = document.getElementById('phone').value;
 
-      try {
-        const res = await axios.post('/incoming', { phone });
-        status.textContent = res.data.message || 'Sent!';
-      } catch (err) {
-        console.error(err);
-        status.textContent = 'Error sending WhatsApp.';
-      }
+      const res = await fetch('/incoming', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+
+      const result = await res.json();
+      status.textContent = result.message || 'Error sending message';
     });
   </script>
 </body>
